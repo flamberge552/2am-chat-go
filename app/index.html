@@ -1,0 +1,29 @@
+<!DOCTYPE html>>
+
+<head>
+    <title>Test</title>
+</head>
+
+<body>
+    <script>
+        let socket = new WebSocket("ws://localhost:8080/ws")
+        console.log("attempting websocket connection")
+
+        socket.onopen = () => {
+            console.log("succesfully connected")
+            socket.send("hi from client")
+        }
+
+        socket.onclose = (event) => {
+            console.log("socket connction closed", event)
+        }
+
+        socket.onmessage = (msg) => {
+            console.log(msg)
+        }
+
+        socket.onerror = (event) => {
+            console.log("Socket error", error)
+        }
+    </script>
+</body>
