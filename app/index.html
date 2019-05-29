@@ -1,29 +1,19 @@
-<!DOCTYPE html>>
-
-<head>
-    <title>Test</title>
-</head>
-
+<!DOCTYPE html>
+<html>
+<head>test</head>
 <body>
     <script>
-        let socket = new WebSocket("ws://localhost:8080/ws")
-        console.log("attempting websocket connection")
+        let socket = new WebSocket("ws://localhost:8080/msg")
 
-        socket.onopen = () => {
-            console.log("succesfully connected")
-            socket.send("hi from client")
+        socket.onopen = function (e) {
+            alert("connection established")
         }
 
-        socket.onclose = (event) => {
-            console.log("socket connction closed", event)
-        }
-
-        socket.onmessage = (msg) => {
-            console.log(msg)
-        }
-
-        socket.onerror = (event) => {
-            console.log("Socket error", error)
+        socket.onmessage = function(event) {
+            alert("data received $event.data")
         }
     </script>
+
 </body>
+
+</html>

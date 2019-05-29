@@ -1,12 +1,32 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/gorilla/websocket"
 )
+
+var clients = make(map[*websocket.Conn]bool)
+var session = make(chan Message)
+
+// Configure the WS upgrader
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
+// Message json object mapper
+type Message struct {
+	Username string `json:"username"`
+	Body     string `json:"body"`
+	Color    struct {
+		R int `json:"r"`
+		G int `json:"g"`
+		B int `json:"b"`
+	}
+}
 
 func check(e error) {
 	if e != nil {
@@ -14,46 +34,52 @@ func check(e error) {
 	}
 }
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-}
+func handleConnections(w http.ResponseWriter, r *http.Request) {
+	// upgrade GET to WS
+	ws, err := upgrader.Upgrade(w, r, nil)
+	check(err)
 
-func homePage(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Home Page")
-}
+	defer ws.Close()
 
-func reader(conn *websocket.Conn) {
+	// register new client
+	clients[ws] = true
+
 	for {
-		messageType, p, err := conn.ReadMessage()
-		check(err)
+		var msg Message
+		err := ws.ReadJSON(&msg)
+		if err != nil {
+			log.Printf("error: %v", err)
+			delete(clients, ws)
+			break
+		}
+		session <- msg
+	}
+}
 
-		log.Println(string(p))
-
-		if err := conn.WriteMessage(messageType, p); err != nil {
-			return
+func handleMessages() {
+	for {
+		// fetch the next message from the channel
+		msg := <-session
+		// send the message to every currently connected client
+		for client := range clients {
+			err := client.WriteJSON(&msg)
+			if err != nil {
+				log.Printf("error: %v", err)
+				client.Close()
+				delete(clients, client)
+			}
 		}
 	}
 }
 
-func wsEndpoint(w http.ResponseWriter, r *http.Request) {
-	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
-
-	ws, err := upgrader.Upgrade(w, r, nil)
-	check(err)
-
-	log.Println("Client Succesfully connected...")
-
-	reader(ws)
-}
-
-func setupRoutes() {
-	http.HandleFunc("/", homePage)
-	http.HandleFunc("/ws", wsEndpoint)
+func serveStatic(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "index.html")
 }
 
 func main() {
-	fmt.Println("hello websockets")
-	setupRoutes()
+	http.HandleFunc("/msg", handleConnections)
+	http.HandleFunc("/", serveStatic)
+	go handleMessages()
+
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
