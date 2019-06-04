@@ -23,6 +23,11 @@ func generateID(r *Room) {
 	r.RoomID = rand.Int31()
 }
 
+func (rs *Rooms) addID(r Room) []int32 {
+	rs.RoomIDs = append(rs.RoomIDs, r.RoomID)
+	return rs.RoomIDs
+}
+
 // CreateRoom generates a room with and ID and returns it
 func CreateRoom(w http.ResponseWriter, r *http.Request) {
 	generateID(&room)
@@ -36,6 +41,7 @@ func CreateRoom(w http.ResponseWriter, r *http.Request) {
 
 // ReturnRooms returns all the rooms that have been generated
 func ReturnRooms(w http.ResponseWriter, r *http.Request) {
+
 	roomsJSON, err := json.Marshal(&rooms)
 	if err != nil {
 		panic(err)
