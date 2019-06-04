@@ -1,15 +1,44 @@
 package main
 
 import (
+	"encoding/json"
 	"math/rand"
 	"net/http"
 )
 
-var room = make(chan Message)
+var room Room
+var rooms Rooms
 
-func generateID() int64 {
-	return rand.Int63()
+// Room object map
+type Room struct {
+	RoomID int32 `json:"id"`
 }
 
-func createRoom(w http.ResponseWriter, r *http.Request) {
+// Rooms array
+type Rooms struct {
+	RoomIDs []int32 `json:"ids"`
+}
+
+func generateID(r *Room) {
+	r.RoomID = rand.Int31()
+}
+
+// CreateRoom generates a room with and ID and returns it
+func CreateRoom(w http.ResponseWriter, r *http.Request) {
+	generateID(&room)
+
+	roomJSON, err := json.Marshal(&room)
+	if err != nil {
+		panic(err)
+	}
+	w.Write(roomJSON)
+}
+
+// ReturnRooms returns all the rooms that have been generated
+func ReturnRooms(w http.ResponseWriter, r *http.Request) {
+	roomsJSON, err := json.Marshal(&rooms)
+	if err != nil {
+		panic(err)
+	}
+	w.Write(roomsJSON)
 }

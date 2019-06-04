@@ -2,20 +2,12 @@ package main
 
 import (
 	"log"
-	"net/http"
 
 	"github.com/gorilla/websocket"
 )
 
 var clients = make(map[*websocket.Conn]bool) // connected clients
 var session = make(chan Message)             // broadcast channel
-
-// Configure the WS upgrader
-var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-}
 
 func handleMessages() {
 	for {

@@ -3,12 +3,21 @@ package main
 import (
 	"log"
 	"net/http"
+
+	"github.com/gorilla/websocket"
 )
 
 func check(e error) {
 	if e != nil {
 		panic(e)
 	}
+}
+
+// Configure the WS upgrader
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
 }
 
 func handleConnections(w http.ResponseWriter, r *http.Request) {
@@ -34,6 +43,8 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	http.HandleFunc("/createRoom", CreateRoom)
+	http.HandleFunc("/getRooms", ReturnRooms)
 	http.HandleFunc("/msg", handleConnections)
 	go handleMessages()
 	// go handleJoin() TODO
