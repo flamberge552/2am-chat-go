@@ -12,11 +12,4 @@ func generateID() int64 {
 }
 
 func createRoom(w http.ResponseWriter, r *http.Request) {
-	ws, err := upgrader.Upgrade(w, r, nil)
-	check(err)
-
-	defer ws.Close()
-
-	clients[ws] = true
-
 }
