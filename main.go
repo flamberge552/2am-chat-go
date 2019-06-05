@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/websocket"
 )
@@ -43,10 +44,10 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	 port := os.Getenv("PORT")
-	 if port == "" {
+	port := os.Getenv("PORT")
+	if port == "" {
 		log.Fatal("$PORT not found, falling back to local port")
-	 }
+	}
 	http.HandleFunc("/createRoom", CreateRoom)
 	http.HandleFunc("/getRooms", ReturnRooms)
 	http.HandleFunc("/msg", handleConnections)
