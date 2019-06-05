@@ -51,5 +51,5 @@ func main() {
 	// go handleLeave() TODO
 	// go handleGetRooms() TODO
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":443", nil))
 }
