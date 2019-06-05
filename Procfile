@@ -1,1 +1,1 @@
-web: bin/2am-chat-go
+web: bin/two-am-chat-go
