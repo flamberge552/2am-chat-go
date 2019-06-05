@@ -43,10 +43,10 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	// port := os.Getenv("PORT")
-	// if port == "" {
-	// 	log.Fatal("$PORT not found, falling back to local port")
-	// }
+	 port := os.Getenv("PORT")
+	 if port == "" {
+		log.Fatal("$PORT not found, falling back to local port")
+	 }
 	http.HandleFunc("/createRoom", CreateRoom)
 	http.HandleFunc("/getRooms", ReturnRooms)
 	http.HandleFunc("/msg", handleConnections)
@@ -55,6 +55,6 @@ func main() {
 	// go handleLeave() TODO
 	// go handleGetRooms() TODO
 
-	// log.Fatal(http.ListenAndServe(":"+port, nil))
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":"+port, nil))
+	// log.Fatal(http.ListenAndServe(":8080", nil))
 }
