@@ -1,15 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/gorilla/websocket"
 )
-
-var port string
 
 func check(e error) {
 	if e != nil {
@@ -47,20 +44,10 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	Block{
-		Try: func() {
-			if os.Getenv("PORT") == "" {
-				fmt.Printf("Detected dev environment, falling back to local port 8080")
-				port = "8080"
-			}
-		},
-		Catch: func(e Exception) {
-			fmt.Printf("$PORT env var not set, %v\n", e)
-		},
-		Finally: func() {
-			port = os.Getenv("PORT")
-		},
-	}.Do()
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
 
 	http.HandleFunc("/createRoom", CreateRoom)
 	http.HandleFunc("/getRooms", ReturnRooms)
@@ -70,5 +57,5 @@ func main() {
 	// go handleLeave() TODO
 	// go handleGetRooms() TODO
 
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	defer log.Fatal(http.ListenAndServe(":"+port, nil))
 }
