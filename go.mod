@@ -4,4 +4,4 @@ go 1.12
 
 require github.com/gorilla/websocket v1.4.0
 
-+heroku goVersion go1.12
+// +heroku goVersion go1.12
