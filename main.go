@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 )
 
@@ -49,13 +50,13 @@ func main() {
 		port = "8080"
 	}
 
-	http.HandleFunc("/createRoom", CreateRoom)
-	http.HandleFunc("/getRooms", ReturnRooms)
-	http.HandleFunc("/msg", handleConnections)
-	go handleMessages()
-	// go handleJoin() TODO
-	// go handleLeave() TODO
-	// go handleGetRooms() TODO
+	r := mux.NewRouter()
 
-	defer log.Fatal(http.ListenAndServe(":"+port, nil))
+	r.HandleFunc("/createRoom", CreateRoom)
+	r.HandleFunc("/getRooms", ReturnRooms)
+	r.HandleFunc("/msg", handleConnections)
+
+	go handleMessages()
+
+	defer log.Fatal(http.ListenAndServe(":"+port, r))
 }
