@@ -27,5 +27,5 @@ func main() {
 
 	go handleMessages()
 
-	defer log.Fatal(http.ListenAndServe(currentContext(), r))
+	log.Fatal(http.ListenAndServe(currentContext(), r))
 }
