@@ -1,31 +1,42 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/gorilla/mux"
 )
 
-func currentContext() string {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-		fmt.Printf("$PORT either undeclared or empty, falling back to default port %s", port)
-	}
-	return ":" + port
+var config Config
+
+// var config = Config{}
+var dao = MessagesDAO{}
+
+// Parse the configuration file 'config.toml', and establish a connection to DB
+func init() {
+	config.Read()
+
+	dao.Server = config.Server
+	dao.Database = config.Database
+	dao.Connect()
+}
+
+func respondWithError(w http.ResponseWriter, code int, msg string) {
+	respondWithJSON(w, code, map[string]string{"error": msg})
+}
+
+func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
+	response, _ := json.Marshal(payload)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	w.Write(response)
 }
 
 func main() {
 	r := mux.NewRouter()
-
-	r.HandleFunc("/createRoom", CreateRoom)
-	r.HandleFunc("/getRooms", ReturnRooms)
 	r.HandleFunc("/msg", handleConnections)
-
-	go handleMessages()
-
+	r.HandleFunc("/getAllMessages", getMessages)
+	go handleMessages(&dao)
 	log.Fatal(http.ListenAndServe(currentContext(), r))
 }

@@ -1,7 +1,12 @@
 package main
 
 import (
+	"log"
+	"net/http"
+
 	"gopkg.in/mgo.v2/bson"
+
+	"github.com/gorilla/websocket"
 )
 
 // Message json object mapper
@@ -16,17 +21,32 @@ type Message struct {
 	}
 }
 
-// Insert saves the message captured in the broadcast channel into the DB.
-// will only return if there is an error
-func (m *MessagesDAO) Insert(message Message) error {
-	err := db.C(COLLECTION).Insert(&message)
-	return err
+var clients = make(map[*websocket.Conn]bool) // connected clients
+var session = make(chan Message)             // broadcast channel
+
+func handleMessages(dao *MessagesDAO) {
+	for {
+		// fetch the next message from the channel
+		msg := <-session
+		msg.ID = bson.NewObjectId()
+		log.Printf("Incoming message: %v", msg)
+		dao.Insert(msg)
+		// send the message to every currently connected client
+		for client := range clients {
+			err := client.WriteJSON(&msg)
+			if err != nil {
+				log.Printf("error: %v", err)
+				client.Close()
+				delete(clients, client)
+			}
+		}
+	}
 }
 
-// FindAll returns all messages saved in the DB
-// will only return error if there is one thrown
-func (m *MessagesDAO) FindAll() ([]Message, error) {
-	var messages []Message
-	err := db.C(COLLECTION).Find(bson.M{}).All(&messages)
-	return messages, err
+func getMessages(w http.ResponseWriter, r *http.Request) {
+	msg, err := dao.FindAll()
+	if err != nil {
+		respondWithError(w, 500, "Error contacting DB")
+	}
+	respondWithJSON(w, 200, msg)
 }
