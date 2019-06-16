@@ -1,2 +1,2 @@
-server="gabriel:parola123@two-am-chat-tom5f.gcp.mongodb.net"
+server="mongodb+srv://gabriel:parola123@two-am-chat-tom5f.gcp.mongodb.net"
 database="messages_db"
