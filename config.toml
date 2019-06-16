@@ -1,0 +1,2 @@
+server="mongo"
+database="messages_db"

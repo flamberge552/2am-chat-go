@@ -1,62 +1,42 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/gorilla/mux"
-	"github.com/gorilla/websocket"
 )
 
-func check(e error) {
-	if e != nil {
-		panic(e)
-	}
+var config Config
+
+// var config = Config{}
+var dao = MessagesDAO{}
+
+// Parse the configuration file 'config.toml', and establish a connection to DB
+func init() {
+	config.Read()
+
+	dao.Server = config.Server
+	dao.Database = config.Database
+	dao.Connect()
 }
 
-// Configure the WS upgrader
-var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
+func respondWithError(w http.ResponseWriter, code int, msg string) {
+	respondWithJSON(w, code, map[string]string{"error": msg})
 }
 
-func handleConnections(w http.ResponseWriter, r *http.Request) {
-	// upgrade GET to WS
-	ws, err := upgrader.Upgrade(w, r, nil)
-	check(err)
-
-	defer ws.Close()
-
-	// register new client
-	clients[ws] = true
-
-	for {
-		var msg Message
-		err := ws.ReadJSON(&msg)
-		if err != nil {
-			log.Printf("error: %v", err)
-			delete(clients, ws)
-			break
-		}
-		session <- msg
-	}
+func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
+	response, _ := json.Marshal(payload)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	w.Write(response)
 }
 
 func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-
 	r := mux.NewRouter()
-
-	r.HandleFunc("/createRoom", CreateRoom)
-	r.HandleFunc("/getRooms", ReturnRooms)
 	r.HandleFunc("/msg", handleConnections)
-
-	go handleMessages()
-
-	defer log.Fatal(http.ListenAndServe(":"+port, r))
+	r.HandleFunc("/getAllMessages", getMessages)
+	go handleMessages(&dao)
+	log.Fatal(http.ListenAndServe(currentContext(), r))
 }
