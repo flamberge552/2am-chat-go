@@ -23,6 +23,7 @@ const (
 // Connect opens the connection to the DB
 func (m *MessagesDAO) Connect() {
 	session, err := mgo.Dial(m.Server)
+	log.Printf("-----------------------------------------------------\n%v \n %v", m.Server, session)
 	if err != nil {
 		log.Fatal(err)
 	}
