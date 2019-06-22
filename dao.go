@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-
 	mgo "go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"gopkg.in/mgo.v2/bson"
 )
 
 // MessagesDAO contains the db connection data
@@ -38,21 +38,43 @@ func (m *MessagesDAO) Connect() {
 // Insert adds 1 message into the DB
 func (m *MessagesDAO) Insert(msg Message) error {
 	collection := db.Collection(COLLECTION)
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+
 	_, err := collection.InsertOne(ctx, &msg)
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	return err
 }
 
 // FindAll returns ALL messages stored
-func (m *MessagesDAO) FindAll() ([]Message, error) {
-	var msg Message
-	var msgs []Message
+func (m *MessagesDAO) FindAll() ([]*Message, error) {
+	var msgs []*Message
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	res := db.Collection(COLLECTION).FindOne(ctx, &msg).Decode(msg)
-	JSON.Data.Map
+
+	cur, err := db.Collection(COLLECTION).Find(ctx, bson.M{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	for cur.Next(ctx) {
+		var elem Message
+		err := cur.Decode(&elem)
+		if err != nil {
+			log.Fatal(err)
+		}
+		msgs = append(msgs, &elem)
+	}
+
+	if err := cur.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	defer cur.Close(ctx)
+
+	return msgs, err
 }
