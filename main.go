@@ -25,6 +25,7 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/msg", handleConnections)
 	r.HandleFunc("/messages", getMessages).Methods("GET")
+	r.HandleFunc("/flush", flushDB).Methods("DELETE")
 	go handleMessages(&dao)
 	log.Fatal(http.ListenAndServe(currentContext(), r))
 }

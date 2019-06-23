@@ -62,3 +62,9 @@ func getMessages(w http.ResponseWriter, r *http.Request) {
 	}
 	respondWithJSON(w, 200, msg)
 }
+
+func flushDB(w http.ResponseWriter, r *http.Request) {
+	body := "DB Cleared"
+	response, _ := json.Marshal(body)
+	w.Write(response)
+}
