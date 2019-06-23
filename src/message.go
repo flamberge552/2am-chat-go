@@ -64,6 +64,7 @@ func getMessages(w http.ResponseWriter, r *http.Request) {
 }
 
 func flushDB(w http.ResponseWriter, r *http.Request) {
+	dao.Flush()
 	body := "DB Cleared"
 	response, _ := json.Marshal(body)
 	w.Write(response)

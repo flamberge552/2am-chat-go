@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -24,6 +25,8 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 	// upgrade GET to WS
 	ws, err := upgrader.Upgrade(w, r, nil)
 	check(err)
+
+	go keepAlive(ws, 5*time.Second)
 
 	defer ws.Close()
 	// register new client
