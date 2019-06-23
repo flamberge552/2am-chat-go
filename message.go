@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 
 	"gopkg.in/mgo.v2/bson"
 
@@ -12,10 +13,11 @@ import (
 
 // Message json object mapper
 type Message struct {
-	ID       bson.ObjectId `bson:"_id" json:"id"`
-	Username string        `bson:"username" json:"username"`
-	Body     string        `bson:"body" json:"body"`
-	Color    struct {
+	ID        bson.ObjectId `bson:"_id" json:"id"`
+	Username  string        `bson:"username" json:"username"`
+	Body      string        `bson:"body" json:"body"`
+	Timestamp string        `bson:"_timestamp" json:"timestamp"`
+	Color     struct {
 		R int `bson:"r" json:"r"`
 		G int `bson:"g" json:"g"`
 		B int `bson:"b" json:"b"`
@@ -29,8 +31,9 @@ func handleMessages(dao *MessagesDAO) {
 	for {
 		// fetch the next message from the channel
 		msg := <-session
-		msg.ID = bson.NewObjectId()
 		log.Printf("Incoming message: %v", msg)
+		msg.ID = bson.NewObjectId()
+		msg.Timestamp = time.Now().UTC().Format(time.RFC850)
 		dao.Insert(msg)
 		// send the message to every currently connected client
 		for client := range clients {
