@@ -78,3 +78,16 @@ func (m *MessagesDAO) FindAll() ([]*Message, error) {
 
 	return msgs, err
 }
+
+// Flush clears out the entire DB
+func (m *MessagesDAO) Flush() error {
+	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
+	defer cancel()
+
+	err := db.Collection(COLLECTION).Drop(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return err
+}
